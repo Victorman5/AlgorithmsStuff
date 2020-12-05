@@ -1,1 +1,1 @@
-# AlgorithmsStaff
+# AlgorithmsStuff
