@@ -1,11 +1,11 @@
-template <typename T>
+template <typename NodeType>
 struct SegmentTree
 {
 public:
-	typedef T (*Operation)(T, T);
+	typedef NodeType (*OperationFunction)(NodeType, NodeType);
 
 
-	SegmentTree(size_t size, Operation operation, T operationDefaultResult)
+	SegmentTree(size_t size, OperationFunction operation, NodeType operationDefaultResult)
 	{
 		_operationDefaultResult = operationDefaultResult;
 		_operation = operation;
@@ -13,7 +13,7 @@ public:
 		_initialize(size);
 	}
 
-	SegmentTree(T* begin, T* end, Operation operation, T operationDefaultResult)
+	SegmentTree(NodeType* begin, NodeType* end, OperationFunction operation, NodeType operationDefaultResult)
 	{
 		_operationDefaultResult = operationDefaultResult;
 		_operation = operation;
@@ -22,35 +22,70 @@ public:
 		_build(begin, end - begin);
 	}
 
-	void Set(size_t index, T value)
+	void Set(size_t index, NodeType value)
 	{
-		_set(index, value, 0, 0, _size);
+		_set(index, value, 0, 0, _originalSize);
 	}
 
-	T ResultOn(size_t start, size_t end)
+	NodeType Get(size_t index) 	
 	{
-		return _resultOn(start, end, 0, 0, _size);
+		return _tree[_treeSize - _originalSize + index];
+	}
+
+	NodeType ResultOn(size_t start, size_t end)
+	{
+		return _resultOn(start, end, 0, 0, _originalSize);
+	}
+
+	NodeType Head()
+	{
+		return _tree[0];
+	}
+
+	size_t OriginalSize()
+	{
+		return _originalSize;
+	}
+
+	NodeType* RawTree()
+	{
+		return _tree;
+	}
+
+	size_t RawTreeSize()
+	{
+		return _treeSize;
+	}
+
+	OperationFunction Operation()
+	{
+		return _operation;
+	}
+
+	NodeType OperationDefaultResult()
+	{
+		return _operationDefaultResult;
 	}
 
 protected:
 	void _initialize(size_t size)
 	{
-		_size = 1;
-		while (_size < size)
-			_size *= 2;
+		_originalSize = 1;
+		while (_originalSize < size)
+			_originalSize *= 2;
 
-		size_t treeSize = 2 * _size + 1;
-		_tree = new T[treeSize];
-		for (size_t i = 0; i < treeSize; i++)
+		_treeSize = 2 * _originalSize - 1;
+		_tree = new NodeType[_treeSize];
+		for (size_t i = 0; i < _treeSize; i++)
 			_tree[i] = _operationDefaultResult;
 	}
 
-	void _build(T* arr, size_t size)
+	void _build(NodeType* arr, size_t size)
 	{
-		_build(arr, size, 0, 0, _size);
+		_build(arr, size, 0, 0, _originalSize);
 	}
 
-	void _build(T* arr, size_t size, size_t node, size_t segmentStart, size_t segmentEnd)
+	void _build(NodeType* arr, size_t size, size_t node, size_t segmentStart, size_t segmentEnd)
 	{
 		if (segmentEnd - segmentStart == 1)
 		{
@@ -66,7 +101,7 @@ protected:
 		}
 	}
 
-	void _set(size_t index, T value, size_t node, size_t segmentStart, size_t segmentEnd)
+	void _set(size_t index, NodeType value, size_t node, size_t segmentStart, size_t segmentEnd)
 	{
 		if (segmentEnd - segmentStart == 1)
 		{
@@ -83,7 +118,7 @@ protected:
 		_tree[node] = _operation(_tree[2 * node + 1], _tree[2 * node + 2]);
 	}
 	
-	T _resultOn(size_t start, size_t end, size_t node, size_t segmentStart, size_t segmentEnd)
+	NodeType _resultOn(size_t start, size_t end, size_t node, size_t segmentStart, size_t segmentEnd)
 	{
 		if (segmentEnd <= start || segmentStart >= end)
 			return _operationDefaultResult;
@@ -98,8 +133,11 @@ protected:
 	}
 
 
-	Operation _operation;
-	T _operationDefaultResult;
-	size_t _size;
-	T* _tree;
+	OperationFunction _operation;
+	NodeType _operationDefaultResult;
+
+	size_t _originalSize;
+
+	size_t _treeSize;
+	NodeType* _tree;
 };
