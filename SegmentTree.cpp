@@ -1,11 +1,11 @@
 template <typename T>
-struct OperationSegmentTree
+struct SegmentTree
 {
 public:
 	typedef T (*Operation)(T, T);
 
 
-	OperationSegmentTree(size_t size, Operation operation, T operationDefaultResult)
+	SegmentTree(size_t size, Operation operation, T operationDefaultResult)
 	{
 		_operationDefaultResult = operationDefaultResult;
 		_operation = operation;
@@ -13,7 +13,7 @@ public:
 		_initialize(size);
 	}
 
-	OperationSegmentTree(T* begin, T* end, Operation operation, T operationDefaultResult)
+	SegmentTree(T* begin, T* end, Operation operation, T operationDefaultResult)
 	{
 		_operationDefaultResult = operationDefaultResult;
 		_operation = operation;
@@ -27,12 +27,12 @@ public:
 		_set(index, value, 0, 0, _size);
 	}
 
-	T OperationResultOn(size_t start, size_t end)
+	T ResultOn(size_t start, size_t end)
 	{
-		return _operationResultOn(start, end, 0, 0, _size);
+		return _resultOn(start, end, 0, 0, _size);
 	}
 
-private:
+protected:
 	void _initialize(size_t size)
 	{
 		_size = 1;
@@ -83,18 +83,18 @@ private:
 		_tree[node] = _operation(_tree[2 * node + 1], _tree[2 * node + 2]);
 	}
 	
-	T _operationResultOn(size_t start, size_t end, size_t node, size_t segmentStart, size_t segmentEnd)
+	T _resultOn(size_t start, size_t end, size_t node, size_t segmentStart, size_t segmentEnd)
 	{
 		if (segmentEnd <= start || segmentStart >= end)
-			return 0;
+			return _operationDefaultResult;
 
 		if (segmentStart >= start && segmentEnd <= end)
 			return _tree[node];
 
 		size_t mid = (segmentStart + segmentEnd) / 2;
 		return _operation(
-			_operationResultOn(start, end, 2 * node + 1, segmentStart, mid),
-			_operationResultOn(start, end, 2 * node + 2, mid, segmentEnd));
+			_resultOn(start, end, 2 * node + 1, segmentStart, mid),
+			_resultOn(start, end, 2 * node + 2, mid, segmentEnd));
 	}
 
 
